@@ -10,10 +10,11 @@ by Darryl Ma
 
 ## Executive Summary
 
+We set out to create a prediction model that would be able to predict if a barbell lift was being performed properly given measurements from accelerometers placed on the belt, forearm, arm, and dumbbell. We managed to create a random forest model that achieved 100% accuracy on both our validation and testing datasets. Additionally, we determined that in order to perform a barbell lift correctly, it is most important that the subject maintain his/her hips in the proper position as well as complete the full forearm motion. 
 
 ## Introduction
 
-The goal of this project is to predict the manner in which a subject performed barbell lifts based on input from accelerometers on the belt, forearm, arm, and dumbell. Six participants of age between 20-28 were asked to perform barbell lifts correctly and incorrectly in 5 different ways:
+The goal of this project is to predict the manner in which a subject performed barbell lifts based on input from accelerometers placed on the belt, forearm, arm, and dumbbell. Six participants of age between 20-28 were asked to perform barbell lifts correctly and incorrectly in 5 different ways:
 
 1. Class A: exactly according to the specification
 2. Class B: throwing the elbows to the front
@@ -21,7 +22,7 @@ The goal of this project is to predict the manner in which a subject performed b
 4. Class D: lowering the dumbbell only halfway 
 5. Class E: throwing the hips to the front
 
-Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. The datasets provided contain various quantitative measurements as each of these participants performed different types of barbell lifts. The aim is to categorize/predict how well an activity was performed by the wearer based on these measurements. 
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. The datasets provided contain various quantitative measurements as each of these participants performed different types of barbell lifts. The aim is to categorize/predict how well an activity was performed based on these measurements. 
 
 ## Loading Data
 
@@ -35,7 +36,7 @@ testing <- read.csv(url("https://d396qusza40orc.cloudfront.net/predmachlearn/pml
                     header = TRUE, na.strings = c("NA", ""))
 ```
 
-The traing set contains 19622 observations and 160 variables, and the testing set contains 20 observations and 160 variables. 
+The training set contains 19622 observations and 160 variables, and the testing set contains 20 observations and 160 variables. 
 
 
 ```r
@@ -146,11 +147,11 @@ str(training)
 ##   [list output truncated]
 ```
 
-A quick glance at the list of variables below show that a lot of the variables have NA values. Therefore our first objective is to remove any unneccesary variables that will not have an impact in classification of the type of barbell lift.
+A quick glance at the list of variables below shows that a lot of the variables have NA values. Therefore our first objective is to remove any unnecessary variables that will not have an impact in the classification of the barbell lift class.
 
 ## Cleaning the Data
 
-The first is to select variables where there are no NA values:
+Firstly we selected to only keep variables which did not contain any NA values:
 
 
 ```r
@@ -158,15 +159,14 @@ training <- training[, colSums(is.na(training)) == 0]
 testing <- testing[, colSums(is.na(testing)) == 0]
 ```
 
-This reduces the number of variables to 60 and 60 in the training and testing set, respectively. 
+This reduced the number of variables to 60 and 60 in the training and testing set, respectively. 
 
 
 ```r
 training <- training[, -c(1:7)]
 testing <- testing[, -c(1:7)]
 ```
-
-From the list of variables, we also see that they first 7 variables: X, username, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window and num_window, will have little to do with how we will classify different types of barbell lifts. As such these first 7 variables were removed from the training and testing sets, further reducing th variable count to 53 and 53 in the training and testing set, respectively.  
+Next, we noticed that the first 7 variables: X, username, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window and num_window, would probably not have a great impact on how we would classify different types of barbell lifts. Consequently, these first 7 variables were removed from the training and testing sets, further reducing the variable count to 53 and 53 in the training and testing set, respectively.  
 
 
 ```r
@@ -234,10 +234,11 @@ The final list of features above all appear to be possible factors in determinin
 
 ## Data Splitting
 
-The training dataset was further split into a cross validation dataset to measure the effectiveness of each predication model
+The training dataset was further split into a cross validation dataset to measure the effectiveness of each prediction model
 
 
 ```r
+set.seed(1234)
 inTrain <- createDataPartition(training$classe, p=0.6, list=FALSE)
 training <- training[inTrain,]
 validation <- training[-inTrain,]
@@ -245,11 +246,11 @@ validation <- training[-inTrain,]
 
 ## Prediction Models
 
-A few prediction models were chosen to try and solve this classification problem: decision tree, random forest and gradient boosting method.
+A few prediction models were chosen to try and solve the classification problem: decision tree, random forest and gradient boosting method.
 
 ### Decision Tree
 
-The following code uses the training set to fit a decision tree model, predicts the classe outcome for the validation set, and reports the confusion matrix and accuracy of the prediction model.
+The following code uses the training set to fit a decision tree model, predicts the classe outcome on the validation set, and reports the confusion matrix and accuracy of the prediction model.
 
 
 ```r
@@ -261,18 +262,153 @@ confusionMatrix(rpartPred, validation$classe)$table
 ```
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1233  343  379  333  141
-##          B   23  303   22  147  104
-##          C  100  233  421  292  238
+##          A 1219  360  363  339  134
+##          B   20  314   24  144   94
+##          C  102  230  427  291  245
 ##          D    0    0    0    0    0
-##          E   11    0    0    0  386
+##          E    5    0    0    0  381
 ```
 
 ```r
-confusionMatrix(rpartPred, validation$classe)$overall[1]
+rpart_acc <- confusionMatrix(rpartPred, validation$classe)$overall[1]
+rpart_acc
 ```
 
 ```
 ##  Accuracy 
-## 0.4975579
+## 0.4989344
 ```
+
+```r
+fancyRpartPlot(rpartFit$finalModel)
+```
+
+![](./figure/unnamed-chunk-7-1.png)<!-- -->
+
+From the output above, we see that the decision tree does not accurately predict the outcome, classe, very well only achieving 49.9% accuracy. The confusion matrix further shows us that this model was particularly very poor at classifying class D, which is corroborated by the dendrogram, where there is no node that classifies any observation as class D. 
+
+### Random Forest
+
+The following code uses the training set to fit a random forest model, predicts the classe outcome on the validation set, and reports the confusion matrix and accuracy of the prediction model.
+
+
+```r
+rfFit <- train(classe ~ ., data=training, method="rf")
+rfPred <- predict(rfFit, validation)
+confusionMatrix(rfPred, validation$classe)$table
+```
+
+```
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1346    0    0    0    0
+##          B    0  904    0    0    0
+##          C    0    0  814    0    0
+##          D    0    0    0  774    0
+##          E    0    0    0    0  854
+```
+
+```r
+rf_acc <- confusionMatrix(rfPred, validation$classe)$overall[1]
+rf_acc
+```
+
+```
+## Accuracy 
+##        1
+```
+
+From the output above, we see that the random forest accurately predicts the outcome, classe, very well, achieving 100% accuracy on the validation set. 
+
+### Gradient Boost Model
+
+The following code uses the training set to fit a gradient boost model, predicts the classe outcome on the validation set, and reports the confusion matrix and accuracy of the prediction model.
+
+
+```r
+gbmFit <- train(classe ~ ., data=training, method="gbm", verbose=FALSE)
+gbmPred <- predict(gbmFit, validation)
+confusionMatrix(gbmPred, validation$classe)$table
+```
+
+```
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1332   16    0    2    1
+##          B    7  874   20    1    6
+##          C    3   13  791   27    9
+##          D    4    1    2  742   11
+##          E    0    0    1    2  827
+```
+
+```r
+gbm_acc <- confusionMatrix(gbmPred, validation$classe)$overall[1]
+gbm_acc
+```
+
+```
+##  Accuracy 
+## 0.9731458
+```
+
+From the output above, we see that the gradient boost model accurately predicts the outcome, classe, very well, achieving 97.3% accuracy on the validation set. 
+
+## Most Influential Variables
+
+
+```r
+imp <- data.frame(varImp(rfFit)[1])
+top_ten_imp <- rownames(imp)[order(imp$Overall, decreasing=TRUE)[1:10]]
+top_ten_imp
+```
+
+```
+##  [1] "roll_belt"         "yaw_belt"          "magnet_dumbbell_z"
+##  [4] "magnet_dumbbell_y" "pitch_belt"        "pitch_forearm"    
+##  [7] "magnet_dumbbell_x" "roll_forearm"      "magnet_belt_z"    
+## [10] "roll_dumbbell"
+```
+
+```r
+avg_by_classe <- aggregate(. ~ classe, training, mean)
+avg_by_classe[,c("classe", top_ten_imp[1:3])]
+```
+
+```
+##   classe roll_belt   yaw_belt magnet_dumbbell_z
+## 1      A  60.20939  -9.869695          12.60024
+## 2      B  64.38249 -15.486705          46.96928
+## 3      C  64.58860  -7.676091          62.65871
+## 4      D  60.03787 -19.164720          56.52850
+## 5      E  75.17748  -4.698296          73.64619
+```
+
+The top 10 variables that influenced the random forest model in determining the classe outcome are printed above. As you can see roll_belt, yaw_belt, and magnet_dumbbell_z were the top 3 most influential variables (refer to image below for a visual definition of pitch, yaw and roll). In general, we can conclude that being able to perform a barbell lift correctly has a lot to do with maintaining your hips in the proper position as well as making sure you complete full forearm motion. More specifically, when performing a barbell lift, you should be aiming for the following roll_belt, yaw_belt, and magnet_dumbbell_z values:
+
+- roll_belt: 60.21
+- yaw_belt: -9.87
+- magnet_dumbbell_z: 12.6 
+
+![Graphical Depiction of Pitch, Yaw and Roll](figure/pitch_raw_roll.png)
+
+## Conclusion
+
+
+```r
+testPred <- predict(rfFit, testing)
+testPred
+```
+
+```
+##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+```
+
+Of all the models, we found that the random forest achieved the highest accuracy, 100%. The accuracies achieved by the other models are listed below:
+
+1. Decision Tree: 49.9%
+2. Gradient Boost Model: 97.3%
+3. Random Forest: 100%
+
+When the random forest model was used to predict the classe outcome for the testing set, it again achieved 100% accuracy, predicting the classe outcome correctly for all 20 observations. Additionally, we determined that in order to perform a barbell lift correctly, it is most important that the subject maintain his/her hips in the proper position as well as complete the full forearm motion.    
+
