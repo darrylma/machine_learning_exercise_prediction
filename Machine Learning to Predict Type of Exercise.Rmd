@@ -106,7 +106,7 @@ rpart_acc
 fancyRpartPlot(rpartFit$finalModel)
 ```
 
-From the output above, we see that the decision tree does not accurately predict the outcome, classe, very well only achieving `r round(rpart_acc[[1]]*100, digits=1)`% accuracy. The confusion matrix further shows us that this model was particularly very poor at classifying class D, which is corroborated by the dendrogram, where there is no node that classifies any observation as class D. 
+From the output above, we see that the decision tree does not accurately predict the outcome, classe, very well only achieving `r round(rpart_acc[[1]]*100, digits=1)`% accuracy on the validation dataset (i.e. out of sample error of `r round((1-rpart_acc[[1]])*100, digits=1)`%). The confusion matrix further shows us that this model was particularly very poor at classifying class D, which is corroborated by the dendrogram, where there is no node that classifies any observation as class D. 
 
 ### Random Forest
 
@@ -120,7 +120,7 @@ rf_acc <- confusionMatrix(rfPred, validation$classe)$overall[1]
 rf_acc
 ```
 
-From the output above, we see that the random forest accurately predicts the outcome, classe, very well, achieving `r round(rf_acc[[1]]*100, digits=1)`% accuracy on the validation set. 
+From the output above, we see that the random forest accurately predicts the outcome, classe, very well, achieving `r round(rf_acc[[1]]*100, digits=1)`% accuracy on the validation set (i.e. out of sample error of `r round((1-rf_acc[[1]])*100, digits=1)`%). 
 
 ### Gradient Boost Model
 
@@ -134,7 +134,7 @@ gbm_acc <- confusionMatrix(gbmPred, validation$classe)$overall[1]
 gbm_acc
 ```
 
-From the output above, we see that the gradient boost model accurately predicts the outcome, classe, very well, achieving `r round(gbm_acc[[1]]*100, digits=1)`% accuracy on the validation set. 
+From the output above, we see that the gradient boost model accurately predicts the outcome, classe, very well, achieving `r round(gbm_acc[[1]]*100, digits=1)`% accuracy on the validation set (i.e. out of sample error of `r round((1-gbm_acc[[1]])*100, digits=1)`%). 
 
 ## Most Influential Variables
 

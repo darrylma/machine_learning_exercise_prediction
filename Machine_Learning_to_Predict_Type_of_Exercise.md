@@ -285,7 +285,7 @@ fancyRpartPlot(rpartFit$finalModel)
 
 ![](./figure/unnamed-chunk-7-1.png)<!-- -->
 
-From the output above, we see that the decision tree does not accurately predict the outcome, classe, very well only achieving 49.9% accuracy. The confusion matrix further shows us that this model was particularly very poor at classifying class D, which is corroborated by the dendrogram, where there is no node that classifies any observation as class D. 
+From the output above, we see that the decision tree does not accurately predict the outcome, classe, very well only achieving 49.9% accuracy on the validation dataset (i.e. out of sample error of 50.1%). The confusion matrix further shows us that this model was particularly very poor at classifying class D, which is corroborated by the dendrogram, where there is no node that classifies any observation as class D. 
 
 ### Random Forest
 
@@ -318,7 +318,7 @@ rf_acc
 ##        1
 ```
 
-From the output above, we see that the random forest accurately predicts the outcome, classe, very well, achieving 100% accuracy on the validation set. 
+From the output above, we see that the random forest accurately predicts the outcome, classe, very well, achieving 100% accuracy on the validation set (i.e. out of sample error of 0%). 
 
 ### Gradient Boost Model
 
@@ -351,7 +351,7 @@ gbm_acc
 ## 0.9731458
 ```
 
-From the output above, we see that the gradient boost model accurately predicts the outcome, classe, very well, achieving 97.3% accuracy on the validation set. 
+From the output above, we see that the gradient boost model accurately predicts the outcome, classe, very well, achieving 97.3% accuracy on the validation set (i.e. out of sample error of 2.7%). 
 
 ## Most Influential Variables
 
